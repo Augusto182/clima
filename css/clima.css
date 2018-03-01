@@ -1,0 +1,19 @@
+#block-clima-bloque-clima  {
+  text-align: left;
+}
+
+#block-clima-bloque-clima .row {
+  margin: 0.2em;
+  background-color: #c1c1c1;
+}
+
+#block-clima-bloque-clima .row .label {
+  display: inline-block;
+  width: 48%;
+  padding: 0 1%;
+}
+
+#block-clima-bloque-clima .row .value {
+  display: inline-block;
+  width: 50%;
+}

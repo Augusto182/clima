@@ -1,0 +1,9 @@
+name = Bloque del clima
+description = Bloque del Clima
+core = 7.x
+package = Bits Americas
+
+stylesheets[all][] = css/clima.css
+scripts[] = js/clima.js
+
+configure = admin/config/content/clima

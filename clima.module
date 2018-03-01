@@ -1,0 +1,179 @@
+<?php
+/**
+ * @file
+ * Este modulo genera un bloque del clima, que consume información de una API externa.
+ * api.openweathermap.org
+ */
+
+/**
+ * Implementa hook_permission().
+ */
+function clima_permission() {
+  return array(
+    'ver bloque del clima' => array(
+      'title' => t('Ver bloque del clima'),
+      'description' => t('Ver bloque del clima.'),
+    ),
+  );
+}
+
+/**
+ * Implementa hook_menu().
+ */
+function clima_menu() {
+  $items = array();
+
+  $items['admin/config/content/clima'] = array(
+    'title' => 'Bloque del clima',
+    'description' => 'Configuración del bloque del clima',
+    'page callback' => t('drupal_get_form'),
+    'page arguments' => array('clima_configuracion_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['node/get/ajax'] = array(
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('ver bloque del clima'),
+    'delivery callback' => 'clima_ajax_callback',  // Magic goes here.
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: Bloque del clima ajax callback.
+ *
+ * Obtiene variables de configuración, los cuales son enviados via ajax al navegador para consumir la API.
+ *
+ * @see clima_menu()
+ */
+function clima_ajax_callback() {
+  $data = array(
+    'base_endpoint' => variable_get('base_endpoint'),
+    'appid'         => variable_get('appid'),
+    'units'         => variable_get('units'),
+    'ciudades'      => variable_get('ciudades'),
+  );
+  print drupal_json_encode($data);
+}
+
+
+/**
+ * Page callback: Constructor del formulario de configuración.
+ *
+ * @see clima_menu()
+ */
+function clima_configuracion_form($form, &$form_state) {
+
+  $form['base_endpoint'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Base endpoint'),
+    '#default_value' => variable_get('base_endpoint', 'http://api.openweathermap.org/data/2.5/weather'),
+    '#description' => t('Endpoint de la API externa del clima.'),
+    '#required' => TRUE,
+  );
+
+  $form['appid'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Appid'),
+    '#default_value' => variable_get('appid', '86723fd6d8b585f6ec7ab1a329dc6622'),
+    '#description' => t('API KEY de la app externa del clima.'),
+    '#required' => TRUE,
+  );
+
+
+  $form['units'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Unidades'),
+    '#default_value' => variable_get('units', 'metric'),
+    '#description' => t('Unidades de medida.'),
+    '#required' => TRUE,
+  );
+
+  $form['ciudades'] = array(
+    '#title' => t('Ciudades disponibles'),
+    '#type' => 'textarea',
+    '#default_value' => variable_get('ciudades',"Bogota|Bogotá\nMedellín|Medellín\nCali|Cali\nMiami|Miami"),
+    '#description' => t('Agregue una opción por linea, en el formato [llave]|[valor]'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implementa hook_block_info().
+ *
+ * Registra el bloque del clima.
+ */
+function clima_block_info() {
+  $blocks['bloque_clima'] = array(
+    'info' => t('Bloque del clima'),
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+    'status' => TRUE,
+    'region' => 'content',
+  );
+  return $blocks;
+}
+
+/**
+ * Implementa hook_block_view().
+ *
+ * Incluye el contenido para el bloque del clima.
+ */
+function clima_block_view($delta = '') {
+  switch ($delta) {
+    case 'bloque_clima':
+      $block['subject'] = t('Bloque del clima');
+      if (user_access('ver bloque del clima')) {
+        $block['content'] = clima_bloque();
+      }
+      else {
+      	$block['content'] = t('No tienes suficientes permisos');
+      }
+    return $block;
+  } 
+}
+
+/**
+ * Form constructor para el formulario del bloque del clima.
+ */
+function clima_block_form($form, &$form_state) {
+
+  $ciudades = array(
+  	'Bogota'   => 'Bogotá',
+  	'Medellin' => 'Medellín',
+  	'Cali'     => 'Cali',
+  	'Miami'   => 'Miami'
+  );
+
+  $form['ciudad'] = array(
+    '#type' => 'select',
+    '#title' => t('Ciudad'),
+    '#options' => $ciudades,
+    '#default_value' => 'Medellin',
+   );
+
+  return $form;
+}
+
+/**
+ * Define función clima_bloque.
+ *
+ * Genera contenido HTML del bloque, incluyendo el formulario.
+ *
+ * @return string
+ *   HTML para el bloque.
+ */
+function clima_bloque() {
+
+  $form    = drupal_get_form('clima_block_form');
+  $content = drupal_render($form);
+  $content .= "<div id='info'></div>";
+
+  return $content;
+}
+
+
+
+?>
