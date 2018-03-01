@@ -8,4 +8,4 @@ http://www.plazapublica.com.co/dev/
 
 ## Author
 
-* **Augusto Ramrez Mahecha** - augustorm2018@gmail.com
+* **Augusto Ramírez Mahecha** - augustorm2018@gmail.com
